@@ -8,6 +8,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.matcher.ViewMatchers.withId;
+
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class SearchUITest {
@@ -17,11 +21,11 @@ public class SearchUITest {
 
     @Test
     public void searchUsingDates() {
-
+        onView(withId(R.id.searchButton)).perform(click());
     }
 
     @Test
     public void searchUsingKeywords() {
-
+        onView(withId(R.id.searchButton)).perform(click());
     }
 }
