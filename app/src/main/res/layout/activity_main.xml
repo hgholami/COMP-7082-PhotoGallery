@@ -29,6 +29,7 @@
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_marginBottom="24dp"
+        android:onClick="takePicture"
         android:text="@string/snap_button"
         app:layout_constraintBottom_toTopOf="@+id/buttonLayout"
         app:layout_constraintEnd_toEndOf="parent"
@@ -92,6 +93,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_weight="1"
+            android:onClick="navGallery"
             android:text="@string/left_button" />
 
         <Button
@@ -108,6 +110,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:onClick="navGallery"
             android:text="@string/right_button" />
     </LinearLayout>
 
