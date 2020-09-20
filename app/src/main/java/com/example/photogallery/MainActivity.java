@@ -24,8 +24,8 @@ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
-    static final int REQUEST_IMAGE_CAPTURE = 1;
-    static int gallery_index = 0;
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private int gallery_index = 0;
     private ArrayList<File> files = null;
     private File appFolder;
 
@@ -34,30 +34,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //appFolder is set to a file with the directory internal storage/Android/data/com.example.photogallery/files/Pictures
+        //if the file doesnt exist, it creates a directory
         appFolder = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         if(!appFolder.exists()){
             if(appFolder.mkdir())
                 Log.d("Directory Creation", "Directory: " + appFolder.getAbsolutePath());
         }
 
-        //gets all files in the picture directory
-        //String path = Environment.getExternalStorageDirectory().toString()+"/Android/data/com.example.photogallery/files/";
-        //Log.d("Files","Path: " + gallery_dir.getAbsolutePath());
-
-        //grabs the file directory and list of image names
-        //File directory = new File(appFolder.getAbsolutePath());
+        //grabs a list of files from the appFolder directory
         if(appFolder.listFiles() != null) {
             files = new ArrayList<File>(Arrays.asList(appFolder.listFiles()));
         }
-        //Log.d("Name",files[0].getName());
-//        Log.d("Files", "Size: " + files.length);
-//        for(int i = 0; i < files.length;i++){
-//            Log.d("Files", "FileName: " + files[i].getName());
-//        }
-
-//        Log.d("FilePath", files[0].toString());
-//        Log.d("# of files"," "+ files.length);
-//        Log.d("exists: ", ""+ files[0].exists());
 
         //set first part of gallery to view
         if(!files.isEmpty()) {
@@ -66,6 +54,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * called by the left and right buttons from the MainActivity
+     * checks if the button that called the function has the id leftButton or rightButton
+     * @param view
+     */
     public void navGallery(View view){
         if(files != null){
             ImageView img_view = (ImageView) findViewById(R.id.photoView);
@@ -86,13 +79,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * called by the Snap Button in the MainActivity and opens the devices built in camera application
+     * @param view
+     */
     public void takePicture(View view){
         //creates an intent for taking a picture
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         //if picture is taken create file to write to in the directory created when app is installed
         if(takePictureIntent.resolveActivity(getPackageManager())!=null){
-            //create file for the photo to overwrite
+
+            //create file for the photo to write to
             File photoFile = null;
             try{
                 photoFile = createImageFile();
@@ -114,17 +112,17 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
 
+            //gets folder where the pictures taken in the app are stored
             File imgFile = new File(appFolder.getAbsolutePath() + "/");
 
+            //checks if the image file was created successfully
             if(imgFile.exists()){
 
+                //sets the index to 0 and grabs the image at that index which is the latest taken picture
                 gallery_index = 0;
                 Bitmap myBitmap = BitmapFactory.decodeFile(files.get(gallery_index).getAbsolutePath());
                 ImageView view = findViewById(R.id.photoView);
                 view.setImageBitmap(myBitmap);
-
-                //TextView date = findViewById(R.id.textView1);
-                //date.setText(new SimpleDateFormat("yyyy-MM-dd_HHmmss").format(new Date()));
             }
 
 
@@ -132,9 +130,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    String currentPhotoPath;
-
+    /**
+     * called after the photo is taken: creates the file and sets the name
+     * @return
+     * @throws IOException
+     */
     private File createImageFile() throws IOException {
+
         //create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
@@ -144,12 +146,15 @@ public class MainActivity extends AppCompatActivity {
                 ".jpg", //suffix
                 storageDir //directory
         );
-        //Log.d("PATH", currentPhotoPath);
-       //currentPhotoPath = image.getAbsolutePath();
+
         addPhoto(image);
         return image;
     }
 
+    /**
+     * adds the photo to the beginning of the list
+     * @param file
+     */
     private void addPhoto(File file){
         files.add(0,file);
     }
