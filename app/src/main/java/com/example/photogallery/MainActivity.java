@@ -158,4 +158,8 @@ public class MainActivity extends AppCompatActivity {
     private void addPhoto(File file){
         files.add(0,file);
     }
+
+    private void updatePhoto(String path, String caption) {
+        
+    }
 }
