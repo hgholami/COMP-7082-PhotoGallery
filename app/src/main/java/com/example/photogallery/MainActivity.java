@@ -1,5 +1,6 @@
 package com.example.photogallery;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
@@ -7,8 +8,10 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.FileUtils;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -18,6 +21,9 @@ import android.widget.TextView;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -68,19 +74,16 @@ public class MainActivity extends AppCompatActivity {
      */
     public void navGallery(View view){
         if(files != null){
-            ImageView img_view = (ImageView) findViewById(R.id.photoView);
             updatePhoto(files.get(gallery_index).toString(), ((EditText) findViewById(R.id.editCaption)).getText().toString());
             switch(view.getId()){
                 case R.id.leftButton:
                     if(gallery_index != 0){
                         gallery_index--;
-                        //img_view.setImageBitmap(BitmapFactory.decodeFile(files.get(gallery_index).toString()));
                     }
                     break;
                 case R.id.rightButton:
                     if(gallery_index < files.size()-1){
                         gallery_index++;
-                        //img_view.setImageBitmap(BitmapFactory.decodeFile(files.get(gallery_index).toString()));
                     }
                     break;
                 default:
@@ -147,7 +150,6 @@ public class MainActivity extends AppCompatActivity {
         ImageView img_view = (ImageView) findViewById(R.id.photoView);
         TextView text_view = (TextView) findViewById(R.id.timestamp);
         EditText edit_text = (EditText) findViewById(R.id.editCaption);
-        //Log.d("Filepath",path);
         if (path == null || path == "") {
             img_view.setImageResource(R.mipmap.ic_launcher);
             edit_text.setText("");
@@ -202,14 +204,17 @@ public class MainActivity extends AppCompatActivity {
      * @param path
      * @param caption
      */
-    private void updatePhoto(String path, String caption) {
+    private void updatePhoto(String path, String caption)  {
         String[] attr = path.split("_");
         if (attr.length >= 3) {
-            File to = new File(attr[0] + "_" + caption + "_" + attr[2] + "_" + attr[3]);
-            Log.d("Update To: ", to.toString());
-            File from = new File(path);
-            Log.d("Updating From ", from.toString());
-            from.renameTo(to);
+            File oldFile = new File(path);
+            File newFile = new File(attr[0] + "_" + caption + "_" + attr[2] + "_" + attr[3]);
+            //oldFile.renameTo(newFile);
+            if (oldFile.renameTo(newFile)) {
+                Log.d("File rename","Successfully renamed file");
+            } else {
+                Log.d("File rename","Could not rename file");
+            }
         }
     }
 }
