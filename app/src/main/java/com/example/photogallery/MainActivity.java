@@ -12,11 +12,13 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,9 +50,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //set first part of gallery to view
-        if(!files.isEmpty()) {
-            ImageView view = findViewById(R.id.photoView);
-            view.setImageBitmap(BitmapFactory.decodeFile(files.get(0).getAbsolutePath()));
+//        if(!files.isEmpty()) {
+//            ImageView view = findViewById(R.id.photoView);
+//            view.setImageBitmap(BitmapFactory.decodeFile(files.get(0).getAbsolutePath()));
+//        }
+        if (files.size() == 0) {
+            displayPhoto(null);
+        } else {
+            displayPhoto(files.get(gallery_index).toString());
         }
     }
 
@@ -62,20 +69,24 @@ public class MainActivity extends AppCompatActivity {
     public void navGallery(View view){
         if(files != null){
             ImageView img_view = (ImageView) findViewById(R.id.photoView);
+            updatePhoto(files.get(gallery_index).toString(), ((EditText) findViewById(R.id.editCaption)).getText().toString());
             switch(view.getId()){
                 case R.id.leftButton:
                     if(gallery_index != 0){
                         gallery_index--;
-                        img_view.setImageBitmap(BitmapFactory.decodeFile(files.get(gallery_index).toString()));
+                        //img_view.setImageBitmap(BitmapFactory.decodeFile(files.get(gallery_index).toString()));
                     }
                     break;
                 case R.id.rightButton:
                     if(gallery_index < files.size()-1){
                         gallery_index++;
-                        img_view.setImageBitmap(BitmapFactory.decodeFile(files.get(gallery_index).toString()));
+                        //img_view.setImageBitmap(BitmapFactory.decodeFile(files.get(gallery_index).toString()));
                     }
                     break;
+                default:
+                    break;
             }
+            displayPhoto(files.get(gallery_index).toString());
         }
     }
 
@@ -116,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             File imgFile = new File(appFolder.getAbsolutePath() + "/");
 
             //checks if the image file was created successfully
-            if(imgFile.exists()){
+            if(imgFile.exists()) {
 
                 //sets the index to 0 and grabs the image at that index which is the latest taken picture
                 gallery_index = 0;
@@ -125,8 +136,35 @@ public class MainActivity extends AppCompatActivity {
                 view.setImageBitmap(myBitmap);
             }
 
+        }
+    }
 
+    /**
+     * Displays the photo retrieve by the current file path
+     * @param path
+     */
+    private void displayPhoto(String path) {
+        ImageView img_view = (ImageView) findViewById(R.id.photoView);
+        TextView text_view = (TextView) findViewById(R.id.timestamp);
+        EditText edit_text = (EditText) findViewById(R.id.editCaption);
+        //Log.d("Filepath",path);
+        if (path == null || path == "") {
+            img_view.setImageResource(R.mipmap.ic_launcher);
+            edit_text.setText("");
+            text_view.setText("Timestamp: ");
+        } else {
+            img_view.setImageBitmap(BitmapFactory.decodeFile(path));
+            String[] attr = path.split("_");
+            edit_text.setText(attr[1]);
+            try {
+                Date calDate = new SimpleDateFormat("yyyyMMdd").parse(attr[2]);
+                String calDateFormat = new SimpleDateFormat("yyyy-MM-dd").format(calDate);
 
+                Date timeDate = new SimpleDateFormat("HHmmss").parse(attr[3]);
+                String timeDateFormat = new SimpleDateFormat("HH:mm:ss").format(timeDate);
+
+                text_view.setText("Timestamp: " + calDateFormat + " " + timeDateFormat);
+            } catch (ParseException pe) {}
         }
     }
 
@@ -136,10 +174,10 @@ public class MainActivity extends AppCompatActivity {
      * @throws IOException
      */
     private File createImageFile() throws IOException {
-
         //create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
+        //String imageFileName = "JPEG_" + timeStamp + "_";
+        String imageFileName = "_caption_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
                 imageFileName, //prefix
@@ -159,7 +197,19 @@ public class MainActivity extends AppCompatActivity {
         files.add(0,file);
     }
 
+    /**
+     * Updates the photo's file path with a newly updated caption
+     * @param path
+     * @param caption
+     */
     private void updatePhoto(String path, String caption) {
-        
+        String[] attr = path.split("_");
+        if (attr.length >= 3) {
+            File to = new File(attr[0] + "_" + caption + "_" + attr[2] + "_" + attr[3]);
+            Log.d("Update To: ", to.toString());
+            File from = new File(path);
+            Log.d("Updating From ", from.toString());
+            from.renameTo(to);
+        }
     }
 }
