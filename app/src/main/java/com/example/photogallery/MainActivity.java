@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private int gallery_index = 0;
     private ArrayList<File> files = null;
     private File appFolder;
+    private String currentCaption;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,8 +74,18 @@ public class MainActivity extends AppCompatActivity {
      * @param view
      */
     public void navGallery(View view){
-        if(files != null){
-            updatePhoto(files.get(gallery_index).toString(), ((EditText) findViewById(R.id.editCaption)).getText().toString());
+        if(!files.isEmpty()){
+
+            EditText caption = (EditText) findViewById(R.id.editCaption);
+            Log.d("Caption ", "" + caption.getText().toString());
+            if(!currentCaption.equals(caption.getText().toString())) {
+                updatePhoto((caption.getText().toString()));
+                Log.d("Caption changed from", "" + currentCaption);
+                Log.d("Caption changed to", "" + caption.toString());
+            } else {
+                Log.d("Caption has not changed", "" + currentCaption);
+                Log.d("Caption has not changed", "" + caption.getText().toString());
+            }
             switch(view.getId()){
                 case R.id.leftButton:
                     if(gallery_index != 0){
@@ -134,9 +145,7 @@ public class MainActivity extends AppCompatActivity {
 
                 //sets the index to 0 and grabs the image at that index which is the latest taken picture
                 gallery_index = 0;
-                Bitmap myBitmap = BitmapFactory.decodeFile(files.get(gallery_index).getAbsolutePath());
-                ImageView view = findViewById(R.id.photoView);
-                view.setImageBitmap(myBitmap);
+                displayPhoto(files.get(gallery_index).getAbsolutePath());
             }
 
         }
@@ -157,12 +166,13 @@ public class MainActivity extends AppCompatActivity {
         } else {
             img_view.setImageBitmap(BitmapFactory.decodeFile(path));
             String[] attr = path.split("_");
-            edit_text.setText(attr[1]);
+            currentCaption = attr[3];
+            edit_text.setText(attr[3]);
             try {
-                Date calDate = new SimpleDateFormat("yyyyMMdd").parse(attr[2]);
+                Date calDate = new SimpleDateFormat("yyyyMMdd").parse(attr[1]);
                 String calDateFormat = new SimpleDateFormat("yyyy-MM-dd").format(calDate);
 
-                Date timeDate = new SimpleDateFormat("HHmmss").parse(attr[3]);
+                Date timeDate = new SimpleDateFormat("HHmmss").parse(attr[2]);
                 String timeDateFormat = new SimpleDateFormat("HH:mm:ss").format(timeDate);
 
                 text_view.setText("Timestamp: " + calDateFormat + " " + timeDateFormat);
@@ -179,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
         //create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         //String imageFileName = "JPEG_" + timeStamp + "_";
-        String imageFileName = "_caption_" + timeStamp + "_";
+        String imageFileName =  "_"+timeStamp + "_caption_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
                 imageFileName, //prefix
@@ -201,19 +211,23 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Updates the photo's file path with a newly updated caption
-     * @param path
      * @param caption
      */
-    private void updatePhoto(String path, String caption)  {
-        String[] attr = path.split("_");
+    private void updatePhoto(String caption) {
+        String[] attr = files.get(gallery_index).toString().split("_");
+        Log.d("Attr Lenght", " = " + attr.length);
         if (attr.length >= 3) {
-            File oldFile = new File(path);
-            File newFile = new File(attr[0] + "_" + caption + "_" + attr[2] + "_" + attr[3]);
-            //oldFile.renameTo(newFile);
+            File oldFile = files.get(gallery_index);
+            File newFile = new File(appFolder,"_" + attr[1] + "_" + attr[2] + "_" + caption + "_" + ".jpg");
+
             if (oldFile.renameTo(newFile)) {
-                Log.d("File rename","Successfully renamed file");
+                files.set(gallery_index,oldFile);
+                //newFile.delete();
+                Log.d("File rename","Successfully renamed file to " + newFile.getName());
             } else {
-                Log.d("File rename","Could not rename file");
+                Log.d("File rename","Could not rename file " + newFile.getName());
+                Log.d("File 1 Exists: ", "" + files.get(gallery_index).exists());
+                Log.d("File 2 Exists: ", "" + newFile.exists());
             }
         }
     }
