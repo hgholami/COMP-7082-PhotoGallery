@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
             if(!currentCaption.equals(caption.getText().toString())) {
                 updatePhoto((caption.getText().toString()));
                 Log.d("Caption changed from", "" + currentCaption);
-                Log.d("Caption changed to", "" + caption.toString());
+                Log.d("Caption changed to", "" + caption.getText().toString());
             } else {
                 Log.d("Caption has not changed", "" + currentCaption);
                 Log.d("Caption has not changed", "" + caption.getText().toString());
@@ -219,11 +219,14 @@ public class MainActivity extends AppCompatActivity {
         if (attr.length >= 3) {
             File oldFile = files.get(gallery_index);
             File newFile = new File(appFolder,"_" + attr[1] + "_" + attr[2] + "_" + caption + "_" + ".jpg");
+            if (files.get(gallery_index).renameTo(newFile)) {
 
-            if (oldFile.renameTo(newFile)) {
-                files.set(gallery_index,oldFile);
+                files = new ArrayList<File>(Arrays.asList(appFolder.listFiles()));
+
                 //newFile.delete();
-                Log.d("File rename","Successfully renamed file to " + newFile.getName());
+                //Log.d("File rename","Successfully renamed file to " + files.get(gallery_index).getAbsolutePath());
+                Log.d("File rename","Successfully renamed file to " + files.get(gallery_index).getPath());
+
             } else {
                 Log.d("File rename","Could not rename file " + newFile.getName());
                 Log.d("File 1 Exists: ", "" + files.get(gallery_index).exists());
