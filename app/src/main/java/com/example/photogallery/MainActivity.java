@@ -38,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
     private File appFolder;
     private String currentCaption;
 
+    // this comment serves no other purpose except to test jenkins
+    // yeet
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
