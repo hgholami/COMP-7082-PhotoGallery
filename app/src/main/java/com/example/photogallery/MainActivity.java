@@ -1,5 +1,6 @@
 package com.example.photogallery;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
@@ -7,16 +8,23 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.FileUtils;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private int gallery_index = 0;
     private ArrayList<File> files = null;
     private File appFolder;
+    private String currentCaption;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,10 +56,12 @@ public class MainActivity extends AppCompatActivity {
             files = new ArrayList<File>(Arrays.asList(appFolder.listFiles()));
         }
 
-        //set first part of gallery to view
-        if(!files.isEmpty()) {
-            ImageView view = findViewById(R.id.photoView);
-            view.setImageBitmap(BitmapFactory.decodeFile(files.get(0).getAbsolutePath()));
+        // display default image if no image files exist,
+        // otherwise display the current image
+        if (files.size() == 0) {
+            displayPhoto(null);
+        } else {
+            displayPhoto(files.get(gallery_index).toString());
         }
     }
 
@@ -60,22 +71,32 @@ public class MainActivity extends AppCompatActivity {
      * @param view
      */
     public void navGallery(View view){
-        if(files != null){
-            ImageView img_view = (ImageView) findViewById(R.id.photoView);
+        if(!files.isEmpty()) {
+            EditText caption = (EditText) findViewById(R.id.editCaption);
+
+            if(!currentCaption.equals(caption.getText().toString())) {
+                updatePhoto((caption.getText().toString()));
+//                Log.d("Caption changed from", "" + currentCaption);
+//                Log.d("Caption changed to", "" + caption.getText().toString());
+            } else {
+//                Log.d("Caption has not changed", "" + currentCaption);
+//                Log.d("Caption has not changed", "" + caption.getText().toString());
+            }
             switch(view.getId()){
                 case R.id.leftButton:
                     if(gallery_index != 0){
                         gallery_index--;
-                        img_view.setImageBitmap(BitmapFactory.decodeFile(files.get(gallery_index).toString()));
                     }
                     break;
                 case R.id.rightButton:
                     if(gallery_index < files.size()-1){
                         gallery_index++;
-                        img_view.setImageBitmap(BitmapFactory.decodeFile(files.get(gallery_index).toString()));
                     }
                     break;
+                default:
+                    break;
             }
+            displayPhoto(files.get(gallery_index).toString());
         }
     }
 
@@ -116,17 +137,45 @@ public class MainActivity extends AppCompatActivity {
             File imgFile = new File(appFolder.getAbsolutePath() + "/");
 
             //checks if the image file was created successfully
-            if(imgFile.exists()){
+            if(imgFile.exists()) {
 
                 //sets the index to 0 and grabs the image at that index which is the latest taken picture
                 gallery_index = 0;
-                Bitmap myBitmap = BitmapFactory.decodeFile(files.get(gallery_index).getAbsolutePath());
-                ImageView view = findViewById(R.id.photoView);
-                view.setImageBitmap(myBitmap);
+                displayPhoto(files.get(gallery_index).getAbsolutePath());
             }
 
+        }
+    }
 
+    /**
+     * Displays the photo retrieve by the current file path
+     * @param path
+     */
+    private void displayPhoto(String path) {
+        ImageView img_view = (ImageView) findViewById(R.id.photoView);
+        TextView text_view = (TextView) findViewById(R.id.timestamp);
+        EditText edit_text = (EditText) findViewById(R.id.editCaption);
+        if (path == null || path == "") {
+            img_view.setImageResource(R.mipmap.ic_launcher);
+            edit_text.setText("");
+            text_view.setText("Timestamp: ");
+        } else {
+            img_view.setImageBitmap(BitmapFactory.decodeFile(path));
+            String[] attr = path.split("_");
+            currentCaption = attr[3];
+            edit_text.setText(attr[3]);
+            try {
+                // take the timestamp and format it to a more "human readable" date
+                Date calDate = new SimpleDateFormat("yyyyMMdd").parse(attr[1]);
+                String calDateFormat = new SimpleDateFormat("yyyy-MM-dd").format(calDate);
 
+                Date timeDate = new SimpleDateFormat("HHmmss").parse(attr[2]);
+                String timeDateFormat = new SimpleDateFormat("HH:mm:ss").format(timeDate);
+
+                text_view.setText("Timestamp: " + calDateFormat + " " + timeDateFormat);
+            } catch (ParseException pe) {
+                pe.printStackTrace();
+            }
         }
     }
 
@@ -136,10 +185,9 @@ public class MainActivity extends AppCompatActivity {
      * @throws IOException
      */
     private File createImageFile() throws IOException {
-
         //create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
+        String imageFileName =  "_"+timeStamp + "_caption_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
                 imageFileName, //prefix
@@ -157,5 +205,29 @@ public class MainActivity extends AppCompatActivity {
      */
     private void addPhoto(File file){
         files.add(0,file);
+    }
+
+    /**
+     * Updates the photo's file path with a newly updated caption
+     * @param caption
+     */
+    private void updatePhoto(String caption) {
+        String[] attr = files.get(gallery_index).toString().split("_");
+        Log.d("Attr Lenght", " = " + attr.length);
+        if (attr.length >= 3) {
+            // get the old file name and rename it with new caption included
+            File oldFile = files.get(gallery_index);
+            File newFile = new File(appFolder,"_" + attr[1] + "_" + attr[2] + "_" + caption + "_" + ".jpg");
+
+            if (oldFile.renameTo(newFile)) {
+                files = new ArrayList<File>(Arrays.asList(appFolder.listFiles()));
+//                Log.d("File rename","Successfully renamed file to " + files.get(gallery_index).getAbsolutePath());
+//                Log.d("File rename","Successfully renamed file to " + files.get(gallery_index).getPath());
+            } else {
+//                Log.d("File rename","Could not rename file " + newFile.getName());
+//                Log.d("File 1 Exists: ", "" + files.get(gallery_index).exists());
+//                Log.d("File 2 Exists: ", "" + newFile.exists());
+            }
+        }
     }
 }
