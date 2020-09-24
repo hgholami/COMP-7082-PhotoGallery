@@ -1,17 +1,13 @@
 package com.example.photogallery;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.FileUtils;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -19,30 +15,48 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int SEARCH_ACTIVITY_REQUEST_CODE = 2;
     private int gallery_index = 0;
     private ArrayList<File> files = null;
     private File appFolder;
+
+    //Filters
     private String currentCaption;
+    private String startDate = "";
+    private String endDate = "";
+    private String topLeftLat = "";
+    private String topLeftLng = "";
+    private String bottomRightLat = "";
+    private String bottomRightLng = "";
+    private String keyword = "";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        try {
+            loadFiles();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
 
+    public void loadFiles() throws ParseException {
         //appFolder is set to a file with the directory internal storage/Android/data/com.example.photogallery/files/Pictures
         //if the file doesnt exist, it creates a directory
         appFolder = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
@@ -54,6 +68,40 @@ public class MainActivity extends AppCompatActivity {
         //grabs a list of files from the appFolder directory
         if(appFolder.listFiles() != null) {
             files = new ArrayList<File>(Arrays.asList(appFolder.listFiles()));
+
+            // applies filters
+            // todo: do stuff for longitude and lattitude
+            for (Iterator<File> it = files.iterator(); it.hasNext();) {
+                File item = it.next();
+                Date curDate = parseDate(item);
+                if (!keyword.isEmpty() && !parseCaption(item).contains(keyword)) {
+                    it.remove();
+                    continue;
+                }
+
+                try {
+                    if (!startDate.isEmpty()) {
+                        if (new SimpleDateFormat("yyyy-MM-dd").parse(startDate).compareTo(curDate) > 0) {
+                            it.remove();
+                            continue;
+                        }
+                    }
+                    if (!endDate.isEmpty()) {
+                        if (new SimpleDateFormat("yyyy-MM-dd").parse(endDate).compareTo(curDate) < 0) {
+                            it.remove();
+                            continue;
+                        }
+                    }
+                } catch (Exception ex) {
+                    //if format is wrong, show nothing
+                    Log.d("Date Parsing Error", String.valueOf(ex));
+                    it.remove();
+                    continue;
+                }
+
+
+
+            }
         }
 
         // display default image if no image files exist,
@@ -128,8 +176,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void navigateSearch(View view) throws ParseException {
+        Intent intent = new Intent(this, SearchActivity.class);
+        startActivityForResult(intent, SEARCH_ACTIVITY_REQUEST_CODE);
+        loadFiles();
+    }
+
+
+
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
 
@@ -145,6 +203,34 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
+
+        if (requestCode == SEARCH_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK) {
+
+            startDate = data.getStringExtra("startDate");
+            endDate =data.getStringExtra("endDate");
+            topLeftLat = data.getStringExtra("topLeftLat");
+            topLeftLng = data.getStringExtra("topLeftLng");
+            bottomRightLat = data.getStringExtra("bottomRightLat");
+            bottomRightLng = data.getStringExtra("bottomRightLng");
+            keyword = data.getStringExtra("keyword");
+            try {
+                loadFiles();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private String parseCaption(File file) {
+        String path = file.getAbsolutePath();
+        String[] attr = path.split("_");
+        return attr[3];
+    }
+
+    private Date parseDate(File file) throws ParseException {
+        String path = file.getAbsolutePath();
+        String[] attr = path.split("_");
+        return new SimpleDateFormat("yyyyMMdd").parse(attr[1]);
     }
 
     /**
