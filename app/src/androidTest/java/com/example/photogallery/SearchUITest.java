@@ -22,6 +22,7 @@ public class SearchUITest {
     @Test
     public void searchUsingDates() {
         onView(withId(R.id.searchButton)).perform(click());
+        onView(withId(R.id.rightButton)).perform(click());
     }
 
     @Test
