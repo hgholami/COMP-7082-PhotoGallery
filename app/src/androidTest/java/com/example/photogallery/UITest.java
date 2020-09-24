@@ -14,6 +14,7 @@ import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
 import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.action.ViewActions.typeText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.core.StringContains.containsString;
@@ -27,13 +28,20 @@ public class UITest {
 
     @Test
     public void searchCaptionTest() {
-        onView(withId(R.id.editCaption)).perform(replaceText("eeeeeeeeeeeeeeeeeeeeeeeaaaaaa"), closeSoftKeyboard());
-        onView(withId(R.id.rightButton)).perform(click());
         onView(withId(R.id.searchButton)).perform(click());
+        onView(withId(R.id.keywordField)).check(matches(isDisplayed()));
         onView(withId(R.id.keywordField)).perform(typeText("e"), closeSoftKeyboard());
         onView(withId(R.id.searchButton)).perform(click());
-        onView(withId(R.id.editCaption)).check(matches(withText(containsString("e"))));
-        onView(withId(R.id.editCaption)).check(matches(withText(containsString("eeeeea"))));
+        onView(withId(R.id.editCaption)).check(matches(isDisplayed()));
+    }
+    @Test
+    public void searchDateTest() {
+        onView(withId(R.id.searchButton)).perform(click());
+        onView(withId(R.id.keywordField)).check(matches(isDisplayed()));
+        onView(withId(R.id.startDateField)).perform(typeText("2019-10-10"), closeSoftKeyboard());
+        onView(withId(R.id.endDateField)).perform(typeText("2025-10-10"), closeSoftKeyboard());
+        onView(withId(R.id.searchButton)).perform(click());
+        onView(withId(R.id.editCaption)).check(matches(isDisplayed()));
     }
 
 }
