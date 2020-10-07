@@ -1,6 +1,7 @@
 package com.example.photogallery;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
@@ -25,6 +26,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.FileUtils;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -60,7 +62,8 @@ import java.util.Objects;
 public class MainActivity extends AppCompatActivity {
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
-    private static final int REQUEST_CHECK_SETTINGS = 0x1;
+    private static final int REQUEST_CHECK_SETTINGS = 3;
+    private static final int REQUEST_CODE_PERMISSIONS = 123;
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int SEARCH_ACTIVITY_REQUEST_CODE = 2;
     private int gallery_index = 0;
@@ -72,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
     private String currentCaption;
     private String startDate = "";
     private String endDate = "";
-    private Double Longitude, Latitude;
+    private Double Longitude = 0.0, Latitude = 0.0;
 
     private String topLeftLat = "";
     private String topLeftLng = "";
@@ -91,19 +94,30 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+        checkPermission();
+        setContentView(R.layout.activity_main);
+        //moved load files to after checking if location is enabled
+        try {
+            loadFiles();
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
+    }
+
+    private void checkPermission(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{ Manifest.permission.ACCESS_FINE_LOCATION},REQUEST_CODE_PERMISSIONS);
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    public void getLocation(){
         LocationRequest mLocationRequest = LocationRequest.create();
-        mLocationRequest.setInterval(60000);
-        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setInterval(2000);
+        mLocationRequest.setFastestInterval(1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         LocationCallback mLocationCallback = new LocationCallback(){
             @Override
@@ -115,6 +129,8 @@ public class MainActivity extends AppCompatActivity {
                 for(Location location: locationResult.getLocations())
                 {
                     if(location != null){
+                        Longitude = location.getLongitude();
+                        Latitude = location.getLatitude();
                         //TODO: UI updates.
                     }
                 }
@@ -126,18 +142,65 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(Location location) {
                 DecimalFormat format = new DecimalFormat("#.####");
-                Longitude = location.getLongitude();
-                Latitude = location.getLatitude();
-                Log.d("Debug", "LONG START = " + format.format(location.getLongitude()));
-                Log.d("Debug", "LAT START = " + format.format(location.getLatitude()));
+                if(location != null) {
+                    Longitude = location.getLongitude();
+                    Latitude = location.getLatitude();
+                }
             }
         });
-        setContentView(R.layout.activity_main);
-        try {
-            loadFiles();
-        } catch (ParseException e) {
-            e.printStackTrace();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if(isLocationEnabled(this)){
+                getLocation();
+            } else {
+                createLocationRequest();
+            }
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.P)
+    private boolean isLocationEnabled(Context context){
+        LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        return lm.isLocationEnabled();
+    }
+
+    protected void createLocationRequest() {
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setInterval(10000);
+        locationRequest.setFastestInterval(5000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
+
+        SettingsClient client = LocationServices.getSettingsClient(this);
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
+        task.addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
+            @Override
+            public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                checkPermission();
+                getLocation();
+            }
+        });
+
+        task.addOnFailureListener(this, new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                if(e instanceof ResolvableApiException){
+                    //do code here to show user dialog to turn on Location Settings
+                    try{
+                        ResolvableApiException resolvable = (ResolvableApiException) e;
+                        resolvable.startResolutionForResult(MainActivity.this,REQUEST_CHECK_SETTINGS);
+                    } catch(IntentSender.SendIntentException sendEx) {
+
+                    }
+                }
+            }
+        });
     }
 
     public void loadFiles() throws ParseException {
@@ -148,9 +211,13 @@ public class MainActivity extends AppCompatActivity {
             if (appFolder.mkdir())
                 Log.d("Directory Creation", "Directory: " + appFolder.getAbsolutePath());
         }
+        if(appFolder.listFiles() == null){
+            files = new ArrayList<File>();
+        }
 
-        //grabs a list of files from the appFolder directory
         if (appFolder.listFiles() != null) {
+
+            //grabs a list of files from the appFolder directory
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 files = new ArrayList<File>(Arrays.asList(Objects.requireNonNull(appFolder.listFiles())));
             }
@@ -304,6 +371,11 @@ public class MainActivity extends AppCompatActivity {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
+        }
+
+        if(requestCode == REQUEST_CHECK_SETTINGS){
+            checkPermission();
+            getLocation();
         }
     }
 
