@@ -114,4 +114,22 @@
             android:text="@string/right_button" />
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/Lat_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:text="Latitude:"
+        app:layout_constraintBottom_toTopOf="@+id/buttonLayout"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/Long_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:text="Longitude:"
+        app:layout_constraintBottom_toTopOf="@+id/buttonLayout"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
