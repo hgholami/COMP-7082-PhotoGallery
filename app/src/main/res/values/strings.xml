@@ -16,4 +16,7 @@
     <string name="topLeftLabel">Top Left:</string>
     <string name="bottomRightLabel">Bottom Right:</string>
     <string name="date_format">yyyy-mm-dd</string>
+    <string name="share_button">Share</string>
+    <string name="latitude_label">Latitude:</string>
+    <string name="longitude_label">Longitude:</string>
 </resources>
