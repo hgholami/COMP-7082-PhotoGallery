@@ -17,6 +17,8 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -49,6 +51,8 @@ import com.google.android.gms.tasks.Task;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -82,14 +86,6 @@ public class MainActivity extends AppCompatActivity {
     private String bottomRightLat = "";
     private String bottomRightLng = "";
     private String keyword = "";
-
-
-    // this comment serves no other purpose except to test jenkins
-    // yeet
-    // testing comment
-    // jenkins
-    // jenkins
-    // poop
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -331,6 +327,60 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    /**
+     * called by the Share Button in the MainActivity and opens up the menu for image sharing
+     *
+     * @param view
+     */
+    public void shareToMedia(View view) {
+        ImageView photoView = (ImageView) findViewById(R.id.photoView);
+
+        Uri bmpUri = getLocalBitmapUri(photoView);
+        if (bmpUri != null) {
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("image/jpg");
+            shareIntent.putExtra(Intent.EXTRA_STREAM, bmpUri);
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(shareIntent, "Share image using"));
+        } else {
+            log("Sharing failed");
+        }
+
+    }
+
+    /**
+     * Gets the bitmap available currently from the photoView
+     *
+     * @param imageView
+     * @return bmpUri the current bitmap from the image view
+     */
+    public Uri getLocalBitmapUri(ImageView imageView) {
+
+        // gets the image from the imageview as a bitmap
+        Drawable drawable = imageView.getDrawable();
+        Bitmap bmp = null;
+        if (drawable instanceof BitmapDrawable) {
+            bmp = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+        } else {
+            return null;
+        }
+
+        Uri bmpUri = null;
+        try {
+            
+            // saves the bitmap as a new file before sharing
+            File file = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+                    "share_image" + System.currentTimeMillis() + ".jpg");
+            FileOutputStream out = new FileOutputStream(file);
+            bmp.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            out.close();
+            bmpUri = FileProvider.getUriForFile(MainActivity.this, "com.example.android.fileprovider", file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bmpUri;
+    }
 
     public void navigateSearch(View view) throws ParseException {
         Intent intent = new Intent(this, SearchActivity.class);
