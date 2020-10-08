@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
     private int gallery_index = 0;
     private ArrayList<File> files = null;
     private File appFolder;
-
+    private File tempFile = null;
 
     //Filters
     private String currentCaption;
@@ -366,7 +366,6 @@ public class MainActivity extends AppCompatActivity {
             shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(Intent.createChooser(shareIntent, "Share image using"));
 
-
         } else {
             log("Sharing failed");
         }
@@ -401,11 +400,7 @@ public class MainActivity extends AppCompatActivity {
             out.close();
             bmpUri = FileProvider.getUriForFile(MainActivity.this, "com.example.android.fileprovider", file);
 
-            // delete the temp file so it doesnt get stored
-            if (file.exists()) {
-                log("File deleted after sharing");
-                file.delete();
-            }
+            tempFile = file;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -456,6 +451,10 @@ public class MainActivity extends AppCompatActivity {
         if(requestCode == REQUEST_CHECK_SETTINGS){
             checkPermission();
             getLocation();
+        }
+
+        if (tempFile != null) {
+            tempFile.delete();
         }
     }
 
