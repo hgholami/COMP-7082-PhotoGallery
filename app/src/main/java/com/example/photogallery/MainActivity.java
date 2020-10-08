@@ -8,6 +8,7 @@ import androidx.core.content.FileProvider;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -358,6 +359,10 @@ public class MainActivity extends AppCompatActivity {
     public void shareToMedia(View view) {
         ImageView photoView = (ImageView) findViewById(R.id.photoView);
 
+        if (tempFile != null) {
+            tempFile.delete();
+        }
+
         Uri bmpUri = getLocalBitmapUri(photoView);
         if (bmpUri != null) {
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
@@ -393,14 +398,12 @@ public class MainActivity extends AppCompatActivity {
         try {
             
             // saves the bitmap as a new file before sharing
-            File file = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+            tempFile = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES),
                     "share_image" + System.currentTimeMillis() + ".jpg");
-            FileOutputStream out = new FileOutputStream(file);
+            FileOutputStream out = new FileOutputStream(tempFile);
             bmp.compress(Bitmap.CompressFormat.JPEG, 100, out);
             out.close();
-            bmpUri = FileProvider.getUriForFile(MainActivity.this, "com.example.android.fileprovider", file);
-
-            tempFile = file;
+            bmpUri = FileProvider.getUriForFile(MainActivity.this, "com.example.android.fileprovider", tempFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
