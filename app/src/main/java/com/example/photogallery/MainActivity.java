@@ -365,6 +365,8 @@ public class MainActivity extends AppCompatActivity {
             shareIntent.putExtra(Intent.EXTRA_STREAM, bmpUri);
             shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(Intent.createChooser(shareIntent, "Share image using"));
+
+
         } else {
             log("Sharing failed");
         }
@@ -398,6 +400,12 @@ public class MainActivity extends AppCompatActivity {
             bmp.compress(Bitmap.CompressFormat.JPEG, 100, out);
             out.close();
             bmpUri = FileProvider.getUriForFile(MainActivity.this, "com.example.android.fileprovider", file);
+
+            // delete the temp file so it doesnt get stored
+            if (file.exists()) {
+                log("File deleted after sharing");
+                file.delete();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
