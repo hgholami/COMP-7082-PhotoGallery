@@ -219,16 +219,19 @@ public class MainActivity extends AppCompatActivity {
             }
 
             // applies filters
-            // todo: do stuff for longitude and lattitude
             for (Iterator<File> it = files.iterator(); it.hasNext(); ) {
                 File item = it.next();
                 Date curDate = parseDate(item);
+                Double lat = parseLat(item);
+                Double lng = parseLng(item);
                 if (!keyword.isEmpty() && !parseCaption(item).contains(keyword)) {
                     it.remove();
                     continue;
                 }
 
                 try {
+                    Log.d("bottomRight", bottomRightLat);
+                    Log.d("lat", lat.toString());
                     if (!startDate.isEmpty()) {
                         if (new SimpleDateFormat("yyyy-MM-dd").parse(startDate).compareTo(curDate) > 0) {
                             it.remove();
@@ -241,12 +244,31 @@ public class MainActivity extends AppCompatActivity {
                             continue;
                         }
                     }
+                    if (!topLeftLat.isEmpty() && Double.parseDouble(topLeftLat) > lat ) {
+                        it.remove();
+                        continue;
+                    }
+                    if (!bottomRightLat.isEmpty() && Double.parseDouble(bottomRightLat) < lat ) {
+                        it.remove();
+                        continue;
+                    }
+                    if (!topLeftLng.isEmpty() && Double.parseDouble(topLeftLng) > lng ) {
+                        it.remove();
+                        continue;
+                    }
+                    if (!bottomRightLng.isEmpty() && Double.parseDouble(bottomRightLng) > lng ) {
+                        it.remove();
+                        continue;
+                    }
+
                 } catch (Exception ex) {
                     //if format is wrong, show nothing
-                    Log.d("Date Parsing Error", String.valueOf(ex));
+                    Log.d("Parsing Error", String.valueOf(ex));
                     it.remove();
                     continue;
                 }
+
+
 
 
             }
@@ -429,16 +451,29 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private String parseCaption(File file) {
+    private static String parseCaption(File file) {
         String path = file.getAbsolutePath();
         String[] attr = path.split("_");
         return attr[3];
     }
 
-    private Date parseDate(File file) throws ParseException {
+    private static Date parseDate(File file) throws ParseException {
         String path = file.getAbsolutePath();
         String[] attr = path.split("_");
         return new SimpleDateFormat("yyyyMMdd").parse(attr[1]);
+    }
+
+    private static Double parseLat(File file) throws ParseException {
+        String path = file.getAbsolutePath();
+        String[] attr = path.split("_");
+        return Double.parseDouble(attr[5]);
+    }
+
+    private static Double parseLng(File file) throws ParseException {
+        String path = file.getAbsolutePath();
+        String[] attr = path.split("_");
+        Log.d("Debug", path);
+        return Double.parseDouble(attr[4]);
     }
 
     /**
@@ -528,7 +563,7 @@ public class MainActivity extends AppCompatActivity {
         if (attr.length >= 5) {
             // get the old file name and rename it with new caption included
             File oldFile = files.get(gallery_index);
-            File newFile = new File(appFolder, "_" + attr[1] + "_" + attr[2] + "_" + caption + "_" + attr[4]  + "_" + attr[5]+ ".jpg");
+            File newFile = new File(appFolder, "_" + attr[1] + "_" + attr[2] + "_" + caption + "_" + attr[4]  + "_" + attr[5] + "_.jpg");
 
             if (oldFile.renameTo(newFile)) {
                 files = new ArrayList<File>(Arrays.asList(appFolder.listFiles()));
