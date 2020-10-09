@@ -20,5 +20,8 @@ allprojects {
 }
 
 task clean(type: Delete) {
-    delete rootProject.buildDir
+    // REMOVED - Jenkins should not remove app after building
+    // Add back in if a clean is needed (eg. settings.gradle has been modified)
+    
+    // delete rootProject.buildDir
 }
