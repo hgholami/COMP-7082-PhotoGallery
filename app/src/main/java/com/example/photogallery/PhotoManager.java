@@ -20,7 +20,7 @@ public class PhotoManager {
     private File appFolder;
     public ArrayList<File> files;
     public Context context;
-    
+    private int gallery_index = 0;
     //Filters
     private String startDate = "";
     private String endDate = "";
@@ -144,5 +144,33 @@ public class PhotoManager {
         String[] attr = path.split("_");
         Log.d("Debug", path);
         return Double.parseDouble(attr[4]);
+    }
+
+    private void addPhoto(File file) {
+        files.add(0, file);
+    }
+
+    private void updatePhoto(String caption) {
+        String[] attr = files.get(gallery_index).toString().split("_");
+        Log.d("Attr Length", " = " + attr.length);
+        if (attr.length >= 5) {
+            // get the old file name and rename it with new caption included
+            File oldFile = files.get(gallery_index);
+            File newFile = new File(appFolder, "_" + attr[1] + "_" + attr[2] + "_" + caption + "_" + attr[4]  + "_" + attr[5] + "_.jpg");
+
+            if (oldFile.renameTo(newFile)) {
+                files = new ArrayList<File>(Arrays.asList(appFolder.listFiles()));
+//                Log.d("File rename","Successfully renamed file to " + files.get(gallery_index).getAbsolutePath());
+//                Log.d("File rename","Successfully renamed file to " + files.get(gallery_index).getPath());
+            } else {
+//                Log.d("File rename","Could not rename file " + newFile.getName());
+//                Log.d("File 1 Exists: ", "" + files.get(gallery_index).exists());
+//                Log.d("File 2 Exists: ", "" + newFile.exists());
+            }
+        }
+    }
+
+    public int getGallery_index() {
+        return gallery_index;
     }
 }

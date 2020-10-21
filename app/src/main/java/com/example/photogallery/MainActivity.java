@@ -78,15 +78,15 @@ public class MainActivity extends AppCompatActivity {
 
     //Filters
     private String currentCaption;
-    private String startDate = "";
-    private String endDate = "";
+    //private String startDate = "";
+    //private String endDate = "";
     private Double Longitude = 0.0, Latitude = 0.0;
 
-    private String topLeftLat = "";
-    private String topLeftLng = "";
-    private String bottomRightLat = "";
-    private String bottomRightLng = "";
-    private String keyword = "";
+    //private String topLeftLat = "";
+    //private String topLeftLng = "";
+    //private String bottomRightLat = "";
+    //private String bottomRightLng = "";
+    //private String keyword = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
