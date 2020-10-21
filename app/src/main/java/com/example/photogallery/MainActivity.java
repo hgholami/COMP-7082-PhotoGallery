@@ -28,6 +28,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.FileUtils;
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.util.Log;
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<File> files = null;
     private File appFolder;
     private File tempFile = null;
+    private PhotoManager phManager;
 
     //Filters
     private String currentCaption;
@@ -94,13 +96,14 @@ public class MainActivity extends AppCompatActivity {
         checkPermission();
         setContentView(R.layout.activity_main);
         PhotoManager.initialize(this);
+        phManager = PhotoManager.getInstance();
         //moved load files to after checking if location is enabled
         try {
-            PhotoManager.getInstance().loadFiles();
-            if (files.size() == 0) {
+            phManager.loadFiles();
+            if (phManager.getSize() == 0) {
                 displayPhoto(null);
             } else {
-                displayPhoto(files.get(gallery_index).toString());
+                displayPhoto(phManager.getPhoto().toString());
             }
         } catch (ParseException e) {
             e.printStackTrace();
@@ -206,7 +209,8 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    //public void loadFiles() throws ParseException {
+    //public void
+    // () throws ParseException {
     //    //appFolder is set to a file with the directory internal storage/Android/data/com.example.photogallery/files/Pictures
     //    //if the file doesnt exist, it creates a directory
     //    appFolder = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
@@ -297,11 +301,11 @@ public class MainActivity extends AppCompatActivity {
      * @param view
      */
     public void navGallery(View view) {
-        if (!files.isEmpty()) {
+        if (!phManager.isEmpty()) {
             EditText caption = (EditText) findViewById(R.id.editCaption);
 
             if (!currentCaption.equals(caption.getText().toString())) {
-                updatePhoto((caption.getText().toString()));
+                phManager.updatePhoto((caption.getText().toString()));
 //                Log.d("Caption changed from", "" + currentCaption);
 //                Log.d("Caption changed to", "" + caption.getText().toString());
             } else {
@@ -310,19 +314,19 @@ public class MainActivity extends AppCompatActivity {
             }
             switch (view.getId()) {
                 case R.id.leftButton:
-                    if (gallery_index != 0) {
-                        gallery_index--;
+                    if (phManager.getGallery_index() != 0) {
+                        phManager.decrement();
                     }
                     break;
                 case R.id.rightButton:
-                    if (gallery_index < files.size() - 1) {
-                        gallery_index++;
+                    if (phManager.getGallery_index() < phManager.getSize() - 1) {
+                        phManager.increment();
                     }
                     break;
                 default:
                     break;
             }
-            displayPhoto(files.get(gallery_index).toString());
+            displayPhoto(phManager.getPhoto().toString());
         }
     }
 
@@ -342,7 +346,7 @@ public class MainActivity extends AppCompatActivity {
             //create file for the photo to write to
             File photoFile = null;
             try {
-                photoFile = createImageFile();
+                photoFile = phManager.createImageFile(Longitude,Latitude);
             } catch (IOException ex) {
 
             }
@@ -419,7 +423,8 @@ public class MainActivity extends AppCompatActivity {
     public void navigateSearch(View view) throws ParseException {
         Intent intent = new Intent(this, SearchActivity.class);
         startActivityForResult(intent, SEARCH_ACTIVITY_REQUEST_CODE);
-        PhotoManager.getInstance().loadFiles();
+        phManager.loadFiles();
+        displayPhoto(phManager.getPhoto().toString());
     }
 
 
@@ -430,28 +435,34 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
 
             //gets folder where the pictures taken in the app are stored
-            File imgFile = new File(appFolder.getAbsolutePath() + "/");
+            File imgFile = new File(phManager.getAppFolder().getAbsolutePath() + "/");
 
             //checks if the image file was created successfully
             if (imgFile.exists()) {
                 //sets the index to 0 and grabs the image at that index which is the latest taken picture
-                gallery_index = 0;
-                displayPhoto(files.get(gallery_index).getAbsolutePath());
+                //gallery_index = 0;
+                //displayPhoto(files.get(gallery_index).getAbsolutePath());
+
+                phManager.setGallery_index(0);
+                displayPhoto(phManager.getPhoto().getAbsolutePath());
             }
 
         }
 
         if (requestCode == SEARCH_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK) {
 
-            startDate = data.getStringExtra("startDate");
-            endDate = data.getStringExtra("endDate");
-            topLeftLat = data.getStringExtra("topLeftLat");
-            topLeftLng = data.getStringExtra("topLeftLng");
-            bottomRightLat = data.getStringExtra("bottomRightLat");
-            bottomRightLng = data.getStringExtra("bottomRightLng");
-            keyword = data.getStringExtra("keyword");
+            String startDate = data.getStringExtra("startDate");
+            String endDate = data.getStringExtra("endDate");
+            String topLeftLat = data.getStringExtra("topLeftLat");
+            String topLeftLng = data.getStringExtra("topLeftLng");
+            String bottomRightLat = data.getStringExtra("bottomRightLat");
+            String bottomRightLng = data.getStringExtra("bottomRightLng");
+            String keyword = data.getStringExtra("keyword");
             try {
-                PhotoManager.getInstance().loadFiles();
+                phManager.setFilter(startDate, endDate, topLeftLat, topLeftLng,
+                        bottomRightLat, bottomRightLng,keyword);
+                phManager.loadFiles();
+                displayPhoto(phManager.getPhoto().toString());
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -467,30 +478,30 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private static String parseCaption(File file) {
-        String path = file.getAbsolutePath();
-        String[] attr = path.split("_");
-        return attr[3];
-    }
-
-    private static Date parseDate(File file) throws ParseException {
-        String path = file.getAbsolutePath();
-        String[] attr = path.split("_");
-        return new SimpleDateFormat("yyyyMMdd").parse(attr[1]);
-    }
-
-    private static Double parseLat(File file) throws ParseException {
-        String path = file.getAbsolutePath();
-        String[] attr = path.split("_");
-        return Double.parseDouble(attr[5]);
-    }
-
-    private static Double parseLng(File file) throws ParseException {
-        String path = file.getAbsolutePath();
-        String[] attr = path.split("_");
-        Log.d("Debug", path);
-        return Double.parseDouble(attr[4]);
-    }
+//    private static String parseCaption(File file) {
+//        String path = file.getAbsolutePath();
+//        String[] attr = path.split("_");
+//        return attr[3];
+//    }
+//
+//    private static Date parseDate(File file) throws ParseException {
+//        String path = file.getAbsolutePath();
+//        String[] attr = path.split("_");
+//        return new SimpleDateFormat("yyyyMMdd").parse(attr[1]);
+//    }
+//
+//    private static Double parseLat(File file) throws ParseException {
+//        String path = file.getAbsolutePath();
+//        String[] attr = path.split("_");
+//        return Double.parseDouble(attr[5]);
+//    }
+//
+//    private static Double parseLng(File file) throws ParseException {
+//        String path = file.getAbsolutePath();
+//        String[] attr = path.split("_");
+//        Log.d("Debug", path);
+//        return Double.parseDouble(attr[4]);
+//    }
 
     /**
      * Displays the photo retrieve by the current file path
@@ -531,65 +542,65 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * called after the photo is taken: creates the file and sets the name
-     *
-     * @return
-     * @throws IOException
-     */
-    @SuppressLint("MissingPermission")
-    private File createImageFile() throws IOException {
-        //create an image file name
-        DecimalFormat format = new DecimalFormat("#.####");
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "_" + timeStamp + "_caption_" + format.format(Longitude) + "_" + format.format(Latitude) + "_";
+//    /**
+//     * called after the photo is taken: creates the file and sets the name
+//     *
+//     * @return
+//     * @throws IOException
+//     */
+//    @SuppressLint("MissingPermission")
+//    private File createImageFile() throws IOException {
+//        //create an image file name
+//        DecimalFormat format = new DecimalFormat("#.####");
+//        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+//        String imageFileName = "_" + timeStamp + "_caption_" + format.format(Longitude) + "_" + format.format(Latitude) + "_";
+//
+//        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+//        File image = File.createTempFile(
+//                imageFileName, //prefix
+//                ".jpg", //suffix
+//                storageDir //directory
+//        );
+//
+//        addPhoto(image);
+//        return image;
+//    }
 
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName, //prefix
-                ".jpg", //suffix
-                storageDir //directory
-        );
-
-        addPhoto(image);
-        return image;
-    }
-
-    /**
-     * adds the photo to the beginning of the list
-     *
-     * @param file
-     */
-    private void addPhoto(File file) {
-        files.add(0, file);
-    }
+//    /**
+//     * adds the photo to the beginning of the list
+//     *
+//     * @param file
+//     */
+//    private void addPhoto(File file) {
+//        files.add(0, file);
+//    }
 
     private void log(String string) {
         Log.d("Debug", string);
     }
 
-    /**
-     * Updates the photo's file path with a newly updated caption
-     *
-     * @param caption
-     */
-    private void updatePhoto(String caption) {
-        String[] attr = files.get(gallery_index).toString().split("_");
-        Log.d("Attr Lenght", " = " + attr.length);
-        if (attr.length >= 5) {
-            // get the old file name and rename it with new caption included
-            File oldFile = files.get(gallery_index);
-            File newFile = new File(appFolder, "_" + attr[1] + "_" + attr[2] + "_" + caption + "_" + attr[4]  + "_" + attr[5] + "_.jpg");
-
-            if (oldFile.renameTo(newFile)) {
-                files = new ArrayList<File>(Arrays.asList(appFolder.listFiles()));
-//                Log.d("File rename","Successfully renamed file to " + files.get(gallery_index).getAbsolutePath());
-//                Log.d("File rename","Successfully renamed file to " + files.get(gallery_index).getPath());
-            } else {
-//                Log.d("File rename","Could not rename file " + newFile.getName());
-//                Log.d("File 1 Exists: ", "" + files.get(gallery_index).exists());
-//                Log.d("File 2 Exists: ", "" + newFile.exists());
-            }
-        }
-    }
+//    /**
+//     * Updates the photo's file path with a newly updated caption
+//     *
+//     * @param caption
+//     */
+//    private void updatePhoto(String caption) {
+//        String[] attr = files.get(gallery_index).toString().split("_");
+//        Log.d("Attr Lenght", " = " + attr.length);
+//        if (attr.length >= 5) {
+//            // get the old file name and rename it with new caption included
+//            File oldFile = files.get(gallery_index);
+//            File newFile = new File(appFolder, "_" + attr[1] + "_" + attr[2] + "_" + caption + "_" + attr[4]  + "_" + attr[5] + "_.jpg");
+//
+//            if (oldFile.renameTo(newFile)) {
+//                files = new ArrayList<File>(Arrays.asList(appFolder.listFiles()));
+////                Log.d("File rename","Successfully renamed file to " + files.get(gallery_index).getAbsolutePath());
+////                Log.d("File rename","Successfully renamed file to " + files.get(gallery_index).getPath());
+//            } else {
+////                Log.d("File rename","Could not rename file " + newFile.getName());
+////                Log.d("File 1 Exists: ", "" + files.get(gallery_index).exists());
+////                Log.d("File 2 Exists: ", "" + newFile.exists());
+//            }
+//        }
+//    }
 }

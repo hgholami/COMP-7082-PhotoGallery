@@ -1,11 +1,14 @@
 package com.example.photogallery;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
+import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -150,7 +153,7 @@ public class PhotoManager {
         files.add(0, file);
     }
 
-    private void updatePhoto(String caption) {
+    public void updatePhoto(String caption) {
         String[] attr = files.get(gallery_index).toString().split("_");
         Log.d("Attr Length", " = " + attr.length);
         if (attr.length >= 5) {
@@ -170,7 +173,54 @@ public class PhotoManager {
         }
     }
 
+    /**
+     * called after the photo is taken: creates the file and sets the name
+     *
+     * @return
+     * @throws IOException
+     */
+    @SuppressLint("MissingPermission")
+    public File createImageFile(double Longitude, double Latitude) throws IOException {
+        //create an image file name
+        DecimalFormat format = new DecimalFormat("#.####");
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "_" + timeStamp + "_caption_" + format.format(Longitude) + "_" + format.format(Latitude) + "_";
+
+        File storageDir = appFolder;
+        File image = File.createTempFile(
+                imageFileName, //prefix
+                ".jpg", //suffix
+                storageDir //directory
+        );
+
+        addPhoto(image);
+        return image;
+    }
+
     public int getGallery_index() {
         return gallery_index;
+    }
+    public void setGallery_index(int i){
+        gallery_index = i;
+    }
+    public File getAppFolder(){
+        return appFolder;
+    }
+    public File getPhoto(){
+        return files.get(gallery_index);
+    }
+    public int getSize(){return files.size();}
+    public void increment(){gallery_index++;}
+    public void decrement(){gallery_index--;}
+    public boolean isEmpty(){return files.isEmpty();}
+
+    public void setFilter(String sDate, String eDate, String tlLat, String tlLong, String brLat, String brLong,String k){
+        startDate = sDate;
+        endDate = eDate;
+        topLeftLat = tlLat;
+        topLeftLng = tlLong;
+        bottomRightLat = brLat;
+        bottomRightLng = brLong;
+        keyword = k;
     }
 }
