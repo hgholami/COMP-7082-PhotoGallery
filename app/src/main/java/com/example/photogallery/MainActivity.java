@@ -93,9 +93,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         checkPermission();
         setContentView(R.layout.activity_main);
+        PhotoManager.initialize(this);
         //moved load files to after checking if location is enabled
         try {
-            loadFiles();
+            PhotoManager.getInstance().loadFiles();
+            if (files.size() == 0) {
+                displayPhoto(null);
+            } else {
+                displayPhoto(files.get(gallery_index).toString());
+            }
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -200,89 +206,89 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void loadFiles() throws ParseException {
-        //appFolder is set to a file with the directory internal storage/Android/data/com.example.photogallery/files/Pictures
-        //if the file doesnt exist, it creates a directory
-        appFolder = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        if (!appFolder.exists()) {
-            if (appFolder.mkdir())
-                Log.d("Directory Creation", "Directory: " + appFolder.getAbsolutePath());
-        }
-        if(appFolder.listFiles() == null){
-            files = new ArrayList<File>();
-        }
-
-        if (appFolder.listFiles() != null) {
-
-            //grabs a list of files from the appFolder directory
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                files = new ArrayList<File>(Arrays.asList(Objects.requireNonNull(appFolder.listFiles())));
-            }
-
-            // applies filters
-            for (Iterator<File> it = files.iterator(); it.hasNext(); ) {
-                File item = it.next();
-                Date curDate = parseDate(item);
-                Double lat = parseLat(item);
-                Double lng = parseLng(item);
-                if (!keyword.isEmpty() && !parseCaption(item).contains(keyword)) {
-                    it.remove();
-                    continue;
-                }
-
-                try {
-                    Log.d("bottomRight", bottomRightLat);
-                    Log.d("lat", lat.toString());
-                    if (!startDate.isEmpty()) {
-                        if (new SimpleDateFormat("yyyy-MM-dd").parse(startDate).compareTo(curDate) > 0) {
-                            it.remove();
-                            continue;
-                        }
-                    }
-                    if (!endDate.isEmpty()) {
-                        if (new SimpleDateFormat("yyyy-MM-dd").parse(endDate).compareTo(curDate) < 0) {
-                            it.remove();
-                            continue;
-                        }
-                    }
-                    if (!topLeftLat.isEmpty() && Double.parseDouble(topLeftLat) > lat ) {
-                        it.remove();
-                        continue;
-                    }
-                    if (!bottomRightLat.isEmpty() && Double.parseDouble(bottomRightLat) < lat ) {
-                        it.remove();
-                        continue;
-                    }
-                    if (!topLeftLng.isEmpty() && Double.parseDouble(topLeftLng) > lng ) {
-                        it.remove();
-                        continue;
-                    }
-                    if (!bottomRightLng.isEmpty() && Double.parseDouble(bottomRightLng) > lng ) {
-                        it.remove();
-                        continue;
-                    }
-
-                } catch (Exception ex) {
-                    //if format is wrong, show nothing
-                    Log.d("Parsing Error", String.valueOf(ex));
-                    it.remove();
-                    continue;
-                }
-
-
-
-
-            }
-        }
-
-        // display default image if no image files exist,
-        // otherwise display the current image
-        if (files.size() == 0) {
-            displayPhoto(null);
-        } else {
-            displayPhoto(files.get(gallery_index).toString());
-        }
-    }
+    //public void loadFiles() throws ParseException {
+    //    //appFolder is set to a file with the directory internal storage/Android/data/com.example.photogallery/files/Pictures
+    //    //if the file doesnt exist, it creates a directory
+    //    appFolder = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+    //    if (!appFolder.exists()) {
+    //        if (appFolder.mkdir())
+    //            Log.d("Directory Creation", "Directory: " + appFolder.getAbsolutePath());
+    //    }
+    //    if(appFolder.listFiles() == null){
+    //        files = new ArrayList<File>();
+    //    }
+//
+    //    if (appFolder.listFiles() != null) {
+//
+    //        //grabs a list of files from the appFolder directory
+    //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+    //            files = new ArrayList<File>(Arrays.asList(Objects.requireNonNull(appFolder.listFiles())));
+    //        }
+//
+    //        // applies filters
+    //        for (Iterator<File> it = files.iterator(); it.hasNext(); ) {
+    //            File item = it.next();
+    //            Date curDate = parseDate(item);
+    //            Double lat = parseLat(item);
+    //            Double lng = parseLng(item);
+    //            if (!keyword.isEmpty() && !parseCaption(item).contains(keyword)) {
+    //                it.remove();
+    //                continue;
+    //            }
+//
+    //            try {
+    //                Log.d("bottomRight", bottomRightLat);
+    //                Log.d("lat", lat.toString());
+    //                if (!startDate.isEmpty()) {
+    //                    if (new SimpleDateFormat("yyyy-MM-dd").parse(startDate).compareTo(curDate) > 0) {
+    //                        it.remove();
+    //                        continue;
+    //                    }
+    //                }
+    //                if (!endDate.isEmpty()) {
+    //                    if (new SimpleDateFormat("yyyy-MM-dd").parse(endDate).compareTo(curDate) < 0) {
+    //                        it.remove();
+    //                        continue;
+    //                    }
+    //                }
+    //                if (!topLeftLat.isEmpty() && Double.parseDouble(topLeftLat) > lat ) {
+    //                    it.remove();
+    //                    continue;
+    //                }
+    //                if (!bottomRightLat.isEmpty() && Double.parseDouble(bottomRightLat) < lat ) {
+    //                    it.remove();
+    //                    continue;
+    //                }
+    //                if (!topLeftLng.isEmpty() && Double.parseDouble(topLeftLng) > lng ) {
+    //                    it.remove();
+    //                    continue;
+    //                }
+    //                if (!bottomRightLng.isEmpty() && Double.parseDouble(bottomRightLng) > lng ) {
+    //                    it.remove();
+    //                    continue;
+    //                }
+//
+    //            } catch (Exception ex) {
+    //                //if format is wrong, show nothing
+    //                Log.d("Parsing Error", String.valueOf(ex));
+    //                it.remove();
+    //                continue;
+    //            }
+//
+//
+//
+//
+    //        }
+    //    }
+//
+    //    // display default image if no image files exist,
+    //    // otherwise display the current image
+    //    if (files.size() == 0) {
+    //        displayPhoto(null);
+    //    } else {
+    //        displayPhoto(files.get(gallery_index).toString());
+    //    }
+    //}
 
     /**
      * called by the left and right buttons from the MainActivity
@@ -413,7 +419,7 @@ public class MainActivity extends AppCompatActivity {
     public void navigateSearch(View view) throws ParseException {
         Intent intent = new Intent(this, SearchActivity.class);
         startActivityForResult(intent, SEARCH_ACTIVITY_REQUEST_CODE);
-        loadFiles();
+        PhotoManager.getInstance().loadFiles();
     }
 
 
@@ -445,7 +451,7 @@ public class MainActivity extends AppCompatActivity {
             bottomRightLng = data.getStringExtra("bottomRightLng");
             keyword = data.getStringExtra("keyword");
             try {
-                loadFiles();
+                PhotoManager.getInstance().loadFiles();
             } catch (ParseException e) {
                 e.printStackTrace();
             }
