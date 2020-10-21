@@ -77,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
     private File appFolder;
     private File tempFile = null;
     private PhotoManager phManager;
+    private PhotoUri phUri;
 
     //Filters
     private String currentCaption;
@@ -97,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         PhotoManager.initialize(this);
         phManager = PhotoManager.getInstance();
+        phUri = new PhotoUri(this);
         //moved load files to after checking if location is enabled
         try {
             phManager.loadFiles();
@@ -369,11 +371,8 @@ public class MainActivity extends AppCompatActivity {
     public void shareToMedia(View view) {
         ImageView photoView = (ImageView) findViewById(R.id.photoView);
 
-        if (tempFile != null) {
-            tempFile.delete();
-        }
+        Uri bmpUri = phUri.create(photoView);
 
-        Uri bmpUri = getLocalBitmapUri(photoView);
         if (bmpUri != null) {
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
             shareIntent.setType("image/jpg");
@@ -387,38 +386,38 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    /**
-     * Gets the bitmap available currently from the photoView
-     *
-     * @param imageView
-     * @return bmpUri the current bitmap from the image view
-     */
-    public Uri getLocalBitmapUri(ImageView imageView) {
-
-        // gets the image from the imageview as a bitmap
-        Drawable drawable = imageView.getDrawable();
-        Bitmap bmp = null;
-        if (drawable instanceof BitmapDrawable) {
-            bmp = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
-        } else {
-            return null;
-        }
-
-        Uri bmpUri = null;
-        try {
-            
-            // saves the bitmap as a new file before sharing
-            tempFile = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES),
-                    "share_image" + System.currentTimeMillis() + ".jpg");
-            FileOutputStream out = new FileOutputStream(tempFile);
-            bmp.compress(Bitmap.CompressFormat.JPEG, 100, out);
-            out.close();
-            bmpUri = FileProvider.getUriForFile(MainActivity.this, "com.example.android.fileprovider", tempFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return bmpUri;
-    }
+//    /**
+//     * Gets the bitmap available currently from the photoView
+//     *
+//     * @param imageView
+//     * @return bmpUri the current bitmap from the image view
+//     */
+//    public Uri getLocalBitmapUri(ImageView imageView) {
+//
+//        // gets the image from the imageview as a bitmap
+//        Drawable drawable = imageView.getDrawable();
+//        Bitmap bmp = null;
+//        if (drawable instanceof BitmapDrawable) {
+//            bmp = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+//        } else {
+//            return null;
+//        }
+//
+//        Uri bmpUri = null;
+//        try {
+//
+//            // saves the bitmap as a new file before sharing
+//            tempFile = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+//                    "share_image" + System.currentTimeMillis() + ".jpg");
+//            FileOutputStream out = new FileOutputStream(tempFile);
+//            bmp.compress(Bitmap.CompressFormat.JPEG, 100, out);
+//            out.close();
+//            bmpUri = FileProvider.getUriForFile(MainActivity.this, "com.example.android.fileprovider", tempFile);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return bmpUri;
+//    }
 
     public void navigateSearch(View view) throws ParseException {
         Intent intent = new Intent(this, SearchActivity.class);
@@ -473,9 +472,6 @@ public class MainActivity extends AppCompatActivity {
             getLocation();
         }
 
-        if (tempFile != null) {
-            tempFile.delete();
-        }
     }
 
 //    private static String parseCaption(File file) {

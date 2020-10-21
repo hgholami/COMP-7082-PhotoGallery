@@ -34,6 +34,8 @@ public class PhotoManager {
     private String bottomRightLng = "";
     private String keyword = "";
 
+    private PhotoFile phFile;
+
     private PhotoManager(Context context){
         this.context = context;
     }
@@ -182,16 +184,19 @@ public class PhotoManager {
     @SuppressLint("MissingPermission")
     public File createImageFile(double Longitude, double Latitude) throws IOException {
         //create an image file name
-        DecimalFormat format = new DecimalFormat("#.####");
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "_" + timeStamp + "_caption_" + format.format(Longitude) + "_" + format.format(Latitude) + "_";
+//        DecimalFormat format = new DecimalFormat("#.####");
+//        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+//        String imageFileName = "_" + timeStamp + "_caption_" + format.format(Longitude) + "_" + format.format(Latitude) + "_";
+//
+//        File storageDir = appFolder;
+//        File image = File.createTempFile(
+//                imageFileName, //prefix
+//                ".jpg", //suffix
+//                storageDir //directory
+//        );
 
-        File storageDir = appFolder;
-        File image = File.createTempFile(
-                imageFileName, //prefix
-                ".jpg", //suffix
-                storageDir //directory
-        );
+        phFile = new PhotoFile(Longitude, Latitude);
+        File image = phFile.create(appFolder);
 
         addPhoto(image);
         return image;
