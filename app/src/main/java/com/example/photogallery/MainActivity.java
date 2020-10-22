@@ -62,7 +62,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class MainActivity extends AppCompatActivity {
     private FusedLocationProviderClient fusedLocationClient;
@@ -72,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int SEARCH_ACTIVITY_REQUEST_CODE = 2;
     private int gallery_index = 0;
-    private ArrayList<File> files = null;
+    private List<File> files = null;
     private File appFolder;
     private File tempFile = null;
 
@@ -200,6 +202,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     public void loadFiles() throws ParseException {
         //appFolder is set to a file with the directory internal storage/Android/data/com.example.photogallery/files/Pictures
         //if the file doesnt exist, it creates a directory
@@ -216,73 +219,65 @@ public class MainActivity extends AppCompatActivity {
 
             //grabs a list of files from the appFolder directory
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                files = new ArrayList<File>(Arrays.asList(Objects.requireNonNull(appFolder.listFiles())));
+                files = Arrays.asList(Objects.requireNonNull(appFolder.listFiles()));
             }
 
             // applies filters
-            for (Iterator<File> it = files.iterator(); it.hasNext(); ) {
-                File item = it.next();
-                Date curDate = parseDate(item);
-                Double lat = parseLat(item);
-                Double lng = parseLng(item);
-                if (!keyword.isEmpty() && !parseCaption(item).contains(keyword)) {
-                    it.remove();
-                    continue;
-                }
-
-                try {
-                    Log.d("bottomRight", bottomRightLat);
-                    Log.d("lat", lat.toString());
-                    if (!startDate.isEmpty()) {
-                        if (new SimpleDateFormat("yyyy-MM-dd").parse(startDate).compareTo(curDate) > 0) {
-                            it.remove();
-                            continue;
-                        }
-                    }
-                    if (!endDate.isEmpty()) {
-                        if (new SimpleDateFormat("yyyy-MM-dd").parse(endDate).compareTo(curDate) < 0) {
-                            it.remove();
-                            continue;
-                        }
-                    }
-                    if (!topLeftLat.isEmpty() && Double.parseDouble(topLeftLat) > lat ) {
-                        it.remove();
-                        continue;
-                    }
-                    if (!bottomRightLat.isEmpty() && Double.parseDouble(bottomRightLat) < lat ) {
-                        it.remove();
-                        continue;
-                    }
-                    if (!topLeftLng.isEmpty() && Double.parseDouble(topLeftLng) > lng ) {
-                        it.remove();
-                        continue;
-                    }
-                    if (!bottomRightLng.isEmpty() && Double.parseDouble(bottomRightLng) > lng ) {
-                        it.remove();
-                        continue;
-                    }
-
-                } catch (Exception ex) {
-                    //if format is wrong, show nothing
-                    Log.d("Parsing Error", String.valueOf(ex));
-                    it.remove();
-                    continue;
-                }
-
-
-
-
-            }
+            files = filterFiles(files);
         }
 
         // display default image if no image files exist,
         // otherwise display the current image
         if (files.size() == 0) {
             displayPhoto(null);
-        } else {
+        } else if (gallery_index < files.size()){
             displayPhoto(files.get(gallery_index).toString());
+        } else {
+            displayPhoto(files.get(files.size() - 1).toString());
         }
     }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public List<File> filterFiles(List<File> files) {
+        return files.stream().filter((item) -> {
+            try {
+                Date curDate = parseDate(item);
+                Double lat = parseLat(item);
+                Double lng = parseLng(item);
+
+                if (!keyword.isEmpty() && !parseCaption(item).contains(keyword)) {
+                    return false;
+                }
+                if (!startDate.isEmpty() && new SimpleDateFormat("yyyy-MM-dd").parse(startDate).compareTo(curDate) > 0) {
+                    return false;
+                }
+                if (!endDate.isEmpty() && new SimpleDateFormat("yyyy-MM-dd").parse(endDate).compareTo(curDate) < 0) {
+                    return false;
+                }
+                if (!topLeftLat.isEmpty() && Double.parseDouble(topLeftLat) > lat ) {
+                    return false;
+                }
+                if (!bottomRightLat.isEmpty() && Double.parseDouble(bottomRightLat) < lat ) {
+                    return false;
+                }
+                if (!topLeftLng.isEmpty() && Double.parseDouble(topLeftLng) > lng ) {
+                    return false;
+                }
+                if (!bottomRightLng.isEmpty() && Double.parseDouble(bottomRightLng) > lng ) {
+                    return false;
+                }
+            }
+            catch (Exception ex) {
+                // If parsing errors occur, just filter out the image
+                return false;
+            }
+            return true;
+
+        }).collect(Collectors.toList());
+    }
+
+
+
 
     /**
      * called by the left and right buttons from the MainActivity
@@ -417,6 +412,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
