@@ -81,15 +81,7 @@ public class MainActivity extends AppCompatActivity {
 
     //Filters
     private String currentCaption;
-    //private String startDate = "";
-    //private String endDate = "";
     private Double Longitude = 0.0, Latitude = 0.0;
-
-    //private String topLeftLat = "";
-    //private String topLeftLng = "";
-    //private String bottomRightLat = "";
-    //private String bottomRightLng = "";
-    //private String keyword = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -211,91 +203,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    //public void
-    // () throws ParseException {
-    //    //appFolder is set to a file with the directory internal storage/Android/data/com.example.photogallery/files/Pictures
-    //    //if the file doesnt exist, it creates a directory
-    //    appFolder = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-    //    if (!appFolder.exists()) {
-    //        if (appFolder.mkdir())
-    //            Log.d("Directory Creation", "Directory: " + appFolder.getAbsolutePath());
-    //    }
-    //    if(appFolder.listFiles() == null){
-    //        files = new ArrayList<File>();
-    //    }
-//
-    //    if (appFolder.listFiles() != null) {
-//
-    //        //grabs a list of files from the appFolder directory
-    //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-    //            files = new ArrayList<File>(Arrays.asList(Objects.requireNonNull(appFolder.listFiles())));
-    //        }
-//
-    //        // applies filters
-    //        for (Iterator<File> it = files.iterator(); it.hasNext(); ) {
-    //            File item = it.next();
-    //            Date curDate = parseDate(item);
-    //            Double lat = parseLat(item);
-    //            Double lng = parseLng(item);
-    //            if (!keyword.isEmpty() && !parseCaption(item).contains(keyword)) {
-    //                it.remove();
-    //                continue;
-    //            }
-//
-    //            try {
-    //                Log.d("bottomRight", bottomRightLat);
-    //                Log.d("lat", lat.toString());
-    //                if (!startDate.isEmpty()) {
-    //                    if (new SimpleDateFormat("yyyy-MM-dd").parse(startDate).compareTo(curDate) > 0) {
-    //                        it.remove();
-    //                        continue;
-    //                    }
-    //                }
-    //                if (!endDate.isEmpty()) {
-    //                    if (new SimpleDateFormat("yyyy-MM-dd").parse(endDate).compareTo(curDate) < 0) {
-    //                        it.remove();
-    //                        continue;
-    //                    }
-    //                }
-    //                if (!topLeftLat.isEmpty() && Double.parseDouble(topLeftLat) > lat ) {
-    //                    it.remove();
-    //                    continue;
-    //                }
-    //                if (!bottomRightLat.isEmpty() && Double.parseDouble(bottomRightLat) < lat ) {
-    //                    it.remove();
-    //                    continue;
-    //                }
-    //                if (!topLeftLng.isEmpty() && Double.parseDouble(topLeftLng) > lng ) {
-    //                    it.remove();
-    //                    continue;
-    //                }
-    //                if (!bottomRightLng.isEmpty() && Double.parseDouble(bottomRightLng) > lng ) {
-    //                    it.remove();
-    //                    continue;
-    //                }
-//
-    //            } catch (Exception ex) {
-    //                //if format is wrong, show nothing
-    //                Log.d("Parsing Error", String.valueOf(ex));
-    //                it.remove();
-    //                continue;
-    //            }
-//
-//
-//
-//
-    //        }
-    //    }
-//
-    //    // display default image if no image files exist,
-    //    // otherwise display the current image
-    //    if (files.size() == 0) {
-    //        displayPhoto(null);
-    //    } else {
-    //        displayPhoto(files.get(gallery_index).toString());
-    //    }
-    //}
-
     /**
      * called by the left and right buttons from the MainActivity
      * checks if the button that called the function has the id leftButton or rightButton
@@ -386,39 +293,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-//    /**
-//     * Gets the bitmap available currently from the photoView
-//     *
-//     * @param imageView
-//     * @return bmpUri the current bitmap from the image view
-//     */
-//    public Uri getLocalBitmapUri(ImageView imageView) {
-//
-//        // gets the image from the imageview as a bitmap
-//        Drawable drawable = imageView.getDrawable();
-//        Bitmap bmp = null;
-//        if (drawable instanceof BitmapDrawable) {
-//            bmp = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
-//        } else {
-//            return null;
-//        }
-//
-//        Uri bmpUri = null;
-//        try {
-//
-//            // saves the bitmap as a new file before sharing
-//            tempFile = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES),
-//                    "share_image" + System.currentTimeMillis() + ".jpg");
-//            FileOutputStream out = new FileOutputStream(tempFile);
-//            bmp.compress(Bitmap.CompressFormat.JPEG, 100, out);
-//            out.close();
-//            bmpUri = FileProvider.getUriForFile(MainActivity.this, "com.example.android.fileprovider", tempFile);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        return bmpUri;
-//    }
-
     public void navigateSearch(View view) throws ParseException {
         Intent intent = new Intent(this, SearchActivity.class);
         startActivityForResult(intent, SEARCH_ACTIVITY_REQUEST_CODE);
@@ -439,9 +313,6 @@ public class MainActivity extends AppCompatActivity {
             //checks if the image file was created successfully
             if (imgFile.exists()) {
                 //sets the index to 0 and grabs the image at that index which is the latest taken picture
-                //gallery_index = 0;
-                //displayPhoto(files.get(gallery_index).getAbsolutePath());
-
                 phManager.setGallery_index(0);
                 displayPhoto(phManager.getPhoto().getAbsolutePath());
             }
@@ -473,31 +344,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
-//    private static String parseCaption(File file) {
-//        String path = file.getAbsolutePath();
-//        String[] attr = path.split("_");
-//        return attr[3];
-//    }
-//
-//    private static Date parseDate(File file) throws ParseException {
-//        String path = file.getAbsolutePath();
-//        String[] attr = path.split("_");
-//        return new SimpleDateFormat("yyyyMMdd").parse(attr[1]);
-//    }
-//
-//    private static Double parseLat(File file) throws ParseException {
-//        String path = file.getAbsolutePath();
-//        String[] attr = path.split("_");
-//        return Double.parseDouble(attr[5]);
-//    }
-//
-//    private static Double parseLng(File file) throws ParseException {
-//        String path = file.getAbsolutePath();
-//        String[] attr = path.split("_");
-//        Log.d("Debug", path);
-//        return Double.parseDouble(attr[4]);
-//    }
 
     /**
      * Displays the photo retrieve by the current file path
@@ -538,65 +384,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-//    /**
-//     * called after the photo is taken: creates the file and sets the name
-//     *
-//     * @return
-//     * @throws IOException
-//     */
-//    @SuppressLint("MissingPermission")
-//    private File createImageFile() throws IOException {
-//        //create an image file name
-//        DecimalFormat format = new DecimalFormat("#.####");
-//        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-//        String imageFileName = "_" + timeStamp + "_caption_" + format.format(Longitude) + "_" + format.format(Latitude) + "_";
-//
-//        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-//        File image = File.createTempFile(
-//                imageFileName, //prefix
-//                ".jpg", //suffix
-//                storageDir //directory
-//        );
-//
-//        addPhoto(image);
-//        return image;
-//    }
-
-//    /**
-//     * adds the photo to the beginning of the list
-//     *
-//     * @param file
-//     */
-//    private void addPhoto(File file) {
-//        files.add(0, file);
-//    }
-
     private void log(String string) {
         Log.d("Debug", string);
     }
-
-//    /**
-//     * Updates the photo's file path with a newly updated caption
-//     *
-//     * @param caption
-//     */
-//    private void updatePhoto(String caption) {
-//        String[] attr = files.get(gallery_index).toString().split("_");
-//        Log.d("Attr Lenght", " = " + attr.length);
-//        if (attr.length >= 5) {
-//            // get the old file name and rename it with new caption included
-//            File oldFile = files.get(gallery_index);
-//            File newFile = new File(appFolder, "_" + attr[1] + "_" + attr[2] + "_" + caption + "_" + attr[4]  + "_" + attr[5] + "_.jpg");
-//
-//            if (oldFile.renameTo(newFile)) {
-//                files = new ArrayList<File>(Arrays.asList(appFolder.listFiles()));
-////                Log.d("File rename","Successfully renamed file to " + files.get(gallery_index).getAbsolutePath());
-////                Log.d("File rename","Successfully renamed file to " + files.get(gallery_index).getPath());
-//            } else {
-////                Log.d("File rename","Could not rename file " + newFile.getName());
-////                Log.d("File 1 Exists: ", "" + files.get(gallery_index).exists());
-////                Log.d("File 2 Exists: ", "" + newFile.exists());
-//            }
-//        }
-//    }
 }
