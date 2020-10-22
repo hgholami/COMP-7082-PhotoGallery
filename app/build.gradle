@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.photogallery"
-        minSdkVersion 16
+        minSdkVersion 24
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -39,7 +39,4 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     testImplementation 'junit:junit:4.13'
     implementation "com.google.android.gms:play-services-location:17.1.0"
-
-
-
 }
