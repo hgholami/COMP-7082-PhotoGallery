@@ -223,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             // applies filters
-            files = filterFiles(files);
+            files = filterFiles(files,  keyword,  startDate,  endDate, topLeftLat,  topLeftLng, bottomRightLat,  bottomRightLng);
         }
 
         // display default image if no image files exist,
@@ -238,12 +238,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public List<File> filterFiles(List<File> files) {
+    public List<File> filterFiles(List<File> files, String keyword,
+                                  String startDate, String endDate,
+                                  String topLeftLat, String topLeftLng,
+                                  String bottomRightLat, String bottomRightLng) {
         return files.stream().filter((item) -> {
+            
             try {
                 Date curDate = parseDate(item);
-                Double lat = parseLat(item);
-                Double lng = parseLng(item);
+                double lat = parseLat(item);
+                double lng = parseLng(item);
 
                 if (!keyword.isEmpty() && !parseCaption(item).contains(keyword)) {
                     return false;
