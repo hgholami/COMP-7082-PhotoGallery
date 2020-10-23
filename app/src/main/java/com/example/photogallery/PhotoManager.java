@@ -5,6 +5,9 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.io.File;
 import java.io.IOException;
@@ -200,8 +203,13 @@ public class PhotoManager {
     public File getAppFolder(){
         return appFolder;
     }
-    public File getPhoto(){
-        return files.get(gallery_index);
+    public String getPhoto(){
+        if (files.size() > 0) {
+            return files.get(gallery_index).toString();
+        } else {
+            return "";
+        }
+
     }
     public int getSize(){return files.size();}
     public void increment(){gallery_index++;}
