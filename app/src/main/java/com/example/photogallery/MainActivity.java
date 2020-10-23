@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
             if (phManager.getSize() == 0) {
                 displayPhoto(null);
             } else {
-                displayPhoto(phManager.getPhoto().toString());
+                displayPhoto(phManager.getPhoto());
             }
         } catch (ParseException e) {
             e.printStackTrace();
@@ -237,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
                 default:
                     break;
             }
-            displayPhoto(phManager.getPhoto().toString());
+            displayPhoto(phManager.getPhoto());
         }
     }
 
@@ -299,7 +299,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, SearchActivity.class);
         startActivityForResult(intent, SEARCH_ACTIVITY_REQUEST_CODE);
         phManager.loadFiles();
-        displayPhoto(phManager.getPhoto().toString());
+        displayPhoto(phManager.getPhoto());
     }
 
 
@@ -316,7 +316,7 @@ public class MainActivity extends AppCompatActivity {
             if (imgFile.exists()) {
                 //sets the index to 0 and grabs the image at that index which is the latest taken picture
                 phManager.setGallery_index(0);
-                displayPhoto(phManager.getPhoto().getAbsolutePath());
+                displayPhoto(phManager.getPhoto());
             }
 
         }
@@ -334,7 +334,7 @@ public class MainActivity extends AppCompatActivity {
                 phManager.setFilter(startDate, endDate, topLeftLat, topLeftLng,
                         bottomRightLat, bottomRightLng,keyword);
                 phManager.loadFiles();
-                displayPhoto(phManager.getPhoto().toString());
+                displayPhoto(phManager.getPhoto());
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -385,6 +385,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+
 
     private void log(String string) {
         Log.d("Debug", string);
