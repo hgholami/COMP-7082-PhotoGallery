@@ -50,6 +50,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import org.aspectj.lang.annotation.Pointcut;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -104,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Pointcut("execution(void *.checkPermission(..))")
     private void checkPermission(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
