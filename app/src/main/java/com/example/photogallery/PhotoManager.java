@@ -9,6 +9,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.RequiresApi;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -18,13 +20,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 public class PhotoManager {
     private static PhotoManager instance;
     private File appFolder;
-    public ArrayList<File> files;
+    public List<File> files;
     public Context context;
     private int gallery_index = 0;
     //Filters
@@ -57,6 +61,7 @@ public class PhotoManager {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     public void loadFiles() throws ParseException {
         //appFolder is set to a file with the directory internal storage/Android/data/com.example.photogallery/files/Pictures
         //if the file doesnt exist, it creates a directory
@@ -77,56 +82,51 @@ public class PhotoManager {
             }
 
             // applies filters
-            for (Iterator<File> it = files.iterator(); it.hasNext(); ) {
-                File item = it.next();
+            files = filterFiles(files,  keyword,  startDate,  endDate, topLeftLat,  topLeftLng, bottomRightLat,  bottomRightLng);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public List<File> filterFiles(List<File> files, String keyword,
+                                  String startDate, String endDate,
+                                  String topLeftLat, String topLeftLng,
+                                  String bottomRightLat, String bottomRightLng) {
+
+        return files.stream().filter((item) -> {
+            try {
                 Date curDate = parseDate(item);
-                Double lat = parseLat(item);
-                Double lng = parseLng(item);
+                double lat = parseLat(item);
+                double lng = parseLng(item);
+
                 if (!keyword.isEmpty() && !parseCaption(item).contains(keyword)) {
-                    it.remove();
-                    continue;
+                    return false;
                 }
-
-                try {
-                    Log.d("bottomRight", bottomRightLat);
-                    Log.d("lat", lat.toString());
-                    if (!startDate.isEmpty()) {
-                        if (new SimpleDateFormat("yyyy-MM-dd").parse(startDate).compareTo(curDate) > 0) {
-                            it.remove();
-                            continue;
-                        }
-                    }
-                    if (!endDate.isEmpty()) {
-                        if (new SimpleDateFormat("yyyy-MM-dd").parse(endDate).compareTo(curDate) < 0) {
-                            it.remove();
-                            continue;
-                        }
-                    }
-                    if (!topLeftLat.isEmpty() && Double.parseDouble(topLeftLat) > lat) {
-                        it.remove();
-                        continue;
-                    }
-                    if (!bottomRightLat.isEmpty() && Double.parseDouble(bottomRightLat) < lat) {
-                        it.remove();
-                        continue;
-                    }
-                    if (!topLeftLng.isEmpty() && Double.parseDouble(topLeftLng) > lng) {
-                        it.remove();
-                        continue;
-                    }
-                    if (!bottomRightLng.isEmpty() && Double.parseDouble(bottomRightLng) > lng) {
-                        it.remove();
-                        continue;
-                    }
-
-                } catch (Exception ex) {
-                    //if format is wrong, show nothing
-                    Log.d("Parsing Error", String.valueOf(ex));
-                    it.remove();
-                    continue;
+                if (!startDate.isEmpty() && new SimpleDateFormat("yyyy-MM-dd").parse(startDate).compareTo(curDate) > 0) {
+                    return false;
+                }
+                if (!endDate.isEmpty() && new SimpleDateFormat("yyyy-MM-dd").parse(endDate).compareTo(curDate) < 0) {
+                    return false;
+                }
+                if (!topLeftLat.isEmpty() && Double.parseDouble(topLeftLat) > lat ) {
+                    return false;
+                }
+                if (!bottomRightLat.isEmpty() && Double.parseDouble(bottomRightLat) < lat ) {
+                    return false;
+                }
+                if (!topLeftLng.isEmpty() && Double.parseDouble(topLeftLng) > lng ) {
+                    return false;
+                }
+                if (!bottomRightLng.isEmpty() && Double.parseDouble(bottomRightLng) > lng ) {
+                    return false;
                 }
             }
-        }
+            catch (Exception ex) {
+                // If parsing errors occur, just filter out the image
+                return false;
+            }
+            return true;
+
+        }).collect(Collectors.toList());
     }
 
     private static String parseCaption(File file) {
