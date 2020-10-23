@@ -105,7 +105,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Pointcut("execution(void *.checkPermission(..))")
     private void checkPermission(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
@@ -211,6 +210,7 @@ public class MainActivity extends AppCompatActivity {
      *
      * @param view
      */
+    @Pointcut("execution(void *.navGallery(..))")
     public void navGallery(View view) {
         if (!phManager.isEmpty()) {
             EditText caption = (EditText) findViewById(R.id.editCaption);

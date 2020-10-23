@@ -9,8 +9,9 @@ import org.aspectj.lang.annotation.Pointcut;
 
 @Aspect
 public class AspectLogging {
-    @Before("checkPermission()")
-    public void LogPermission() {
-        Log.d("LOGGING", "________________________________________________________________________________________\"");
+
+    @Before("   call(void navGallery(..))")
+    public void beforeNavButtonPress() {
+        Log.d("LOGGING", "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     }
 }
