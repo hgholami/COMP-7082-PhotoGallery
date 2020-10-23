@@ -1,5 +1,12 @@
 apply plugin: 'com.android.application'
-apply plugin: "com.archinamon.aspectj"
+
+buildscript {
+    repositories {
+        maven {
+            url "https://github.com/Archinamon/GradleAspectJ-Android/raw/master"
+        }
+    }
+}
 
 android {
     compileSdkVersion 30
@@ -7,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.photogallery"
-        minSdkVersion 16
+        minSdkVersion 24
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -34,6 +41,8 @@ android {
 repositories {
     mavenCentral()
 }
+
+//apply plugin: 'com.archinamon.aspectj'
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])

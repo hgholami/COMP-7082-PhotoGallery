@@ -3,10 +3,10 @@ buildscript {
     repositories {
         google()
         jcenter()
-        //mavenCentral()
     }
     dependencies {
         classpath "com.android.tools.build:gradle:4.0.1"
+        classpath "io.realm:realm-gradle-plugin:6.1.0"
         classpath "com.archinamon:android-gradle-aspectj:4.2.0"
 
         // NOTE: Do not place your application dependencies here; they belong
