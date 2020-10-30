@@ -26,6 +26,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Environment;
 import android.os.FileUtils;
 import android.provider.MediaStore;
@@ -62,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
@@ -90,6 +92,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //Begin Method Tracing for onCreate
+        SimpleDateFormat dateFormat =
+                new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss", Locale.getDefault());
+        String logDate = dateFormat.format(new Date());
+        Debug.startMethodTracing("onCreate_performance_profile_" + logDate);
+
         super.onCreate(savedInstanceState);
         checkPermission();
         setContentView(R.layout.activity_main);
@@ -99,6 +107,9 @@ public class MainActivity extends AppCompatActivity {
         } catch (ParseException e) {
             e.printStackTrace();
         }
+
+        //Stop Method Tracing for onCreate
+        Debug.stopMethodTracing();
     }
 
     private void checkPermission(){
@@ -202,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void loadFiles() throws ParseException {
         //appFolder is set to a file with the directory internal storage/Android/data/com.example.photogallery/files/Pictures
-        //if the file doesnt exist, it creates a directory
+        //if the file doesn't exist, it creates a directory
         appFolder = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         if (!appFolder.exists()) {
             if (appFolder.mkdir())
@@ -327,6 +338,12 @@ public class MainActivity extends AppCompatActivity {
      */
     @SuppressLint("MissingPermission")
     public void takePicture(View view) {
+        //Begin Method Tracing for TakePicture
+        SimpleDateFormat dateFormat =
+                new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss", Locale.getDefault());
+        String logDate = dateFormat.format(new Date());
+        Debug.startMethodTracing("takePicture_performance_profile_" + logDate);
+
         //creates an intent for taking a picture
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
@@ -348,6 +365,9 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }
+
+        //Stop Method Tracing for TakePicture
+        Debug.stopMethodTracing();
     }
 
 
@@ -449,6 +469,9 @@ public class MainActivity extends AppCompatActivity {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
+
+            //Stop Method Tracing for Search feature
+            Debug.stopMethodTracing();
         }
 
         if(requestCode == REQUEST_CHECK_SETTINGS){

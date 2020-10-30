@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
@@ -11,6 +12,10 @@ import android.widget.EditText;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class SearchActivity extends AppCompatActivity {
 
@@ -21,6 +26,12 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     public void search(View view) throws JSONException {
+        //Begin Method Tracing for search feature
+        SimpleDateFormat dateFormat =
+                new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss", Locale.getDefault());
+        String logDate = dateFormat.format(new Date());
+        Debug.startMethodTracing("search_performance_profile_" + logDate);
+
         // Get values from fields
         String startDate = ((EditText) findViewById(R.id.startDateField)).getText().toString();
         String endDate = ((EditText) findViewById(R.id.endDateField)).getText().toString();
